@@ -1,4 +1,5 @@
 ## Exploratory scatter plot with linear model for 'mtcars' data
+## Model mpg versus transmission type
 mtcarsPlotEx02 <- function() {
     # Create vectors for 'mpg' and 'am'
     mpg <- mtcars$mpg
