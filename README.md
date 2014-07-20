@@ -23,6 +23,10 @@ Your report must be:
 * Include a first paragraph executive summary.
 
 ### Files
+#### ./explore/
+* mtcarsPlotEx01.r creates a box plot of MPG by transmission type
+* mtcarsPlotEx02.r creates a scatter plot with linear model line of MPG by transmission type (automatic = 0 and manual = 1)
+* mtcarsPlotEx03.r creates a scatter plot with linear model line of MPG by weight (in 1000 lbs) grouped by transmission type
 
 ### Links
 [coursera_reg_models]: https://www.coursera.org/course/regmods
