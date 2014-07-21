@@ -1,12 +1,14 @@
 ## Exploratory box plot for 'mtcars' data
 mtcarsPlotEx01 <- function() {
+    # Load libraries
+    library(datasets)
+    
     # Create vectors for 'mpg' and 'am'
     mpg <- mtcars$mpg
     am <- mtcars$am
     
     # Create factor vector from 'am' for labeling
-    transAM <- function(am) {ifelse(am == 0, "Auto", "Manual")}
-    amFactor <- as.factor(sapply(am, transAM))
+    amFactor <- factor(am, labels = c("Auto", "Manual"))
     
     # Bar plot comparing mpg for automatic versus manual transmissions
     plot(amFactor, mpg, xlab = "Transmission", ylab = "MPG")

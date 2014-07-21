@@ -1,10 +1,11 @@
 ## Exploratory scatter plot with linear model for 'mtcars' data
 ## Compares model by weight to model by weight and transmission type
 mtcarsPlotEx03 <- function() {
+    # Load libraries
+    library(datasets)
+    
     # Create data frame from 'mpg', 'wt', and 'am'
     dat <- with(mtcars, data.frame(MPG = mpg, Weight = wt, Transmission.Num = am))
-    transAM <- function(am) {ifelse(am == 0, "Auto", "Manual")}
-    dat$Transmission.Type <- sapply(dat$Transmission.Num, transAM)
     
     # Set global plot variables for multi-panel
     # par(mfrow = c(2, 1))
