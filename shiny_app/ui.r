@@ -10,13 +10,22 @@ library(shiny)
 shinyUI(pageWithSidebar(
     
     # Add header with tile
-    headerPanel("Explore MTCARS Data Through Linear Regression")
+    headerPanel("Explore MTCARS Data Through Linear Regression"),
     
     # Add sidebar for input
     sidebarPanel(
-        )
+        selectInput("predictor", "Predictor:",
+                    list("Cylinders" = "cyl",
+                         "Displacement (cu.in.)" = "disp", 
+                         "Weight (lb/1000)" = "wt")
+                    ),
+        checkboxInput("color", "Color Code by Transmission")
+        ),
     
     # Add main panel for plot
     mainPanel(
+        h3(textOutput("caption")),
+        plotOutput("plot"),
+        verbatimTextOutput("summary")
         )
     ))
