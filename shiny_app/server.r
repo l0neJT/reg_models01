@@ -23,6 +23,15 @@ shinyServer(function(input, output) {
         lm(as.formula(formulaTxt()), dat)
     })
     
+    # Create x values for confidence and prediction interval lines
+    xVals <- reactive({
+        x <- dat[input$predictor]
+        step = 10^(ceiling(log10(min(x))) - 2) # standardize line appearance
+        xVals <- data.frame(seq(min(x), max(x), by = step))
+        names(xVals) <- input$predictor
+        xVals
+    })
+    
     # Output selected formula as text
     output$caption <- renderText({
         formulaTxt()
@@ -30,8 +39,10 @@ shinyServer(function(input, output) {
     
     # Output scatter plot for mpg ~ predictor with linear model line
     output$plot <- renderPlot({
-        # Store formula to facilitate multiple calls
+        # Store formula, fitLM, and xVals to facilitate multiple calls
         formula <- as.formula(formulaTxt())
+        fitLM <- fitLM()
+        xVals <- xVals()
         
         # Plot mpg ~ predictor
         # Color codes by transmission if input checkbox marked
@@ -49,7 +60,19 @@ shinyServer(function(input, output) {
             legend("topright", pch = 1, col = c("blue", "red"),
                    legend = c("Auto", "Manual"))
         }
-        abline(fitLM(), lwd = 2)
+        
+        # Add linear model regression line
+        abline(fitLM, lwd = 2)
+        
+        # Add confidence interval lines
+        confLM <- predict(fitLM, xVals, interval = "confidence")
+        lines(xVals[, 1], confLM[, "lwr"]) # lower confidence interval
+        lines(xVals[, 1], confLM[, "upr"]) # upper confidence interval
+        
+        # Add prediction interval lines
+        predLM <- predict(fitLM, xVals, interval = "prediction")
+        lines(xVals[, 1], predLM[, "lwr"]) # lower prediction interval
+        lines(xVals[, 1], predLM[, "upr"]) # upper prediction interval
     })
     
     # Output summary for mpg ~ predictor linear model
