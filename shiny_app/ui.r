@@ -19,13 +19,18 @@ shinyUI(pageWithSidebar(
                          "Displacement (cu.in.)" = "disp", 
                          "Weight (lb/1000)" = "wt")
                     ),
-        checkboxInput("color", "Color Code by Transmission")
+        checkboxInput("color", "Color Code by Transmission"),
+        sliderInput("level", "Confidence and Prediction interval:",
+                    min = 0.50, max = 0.99, value = 0.95, step = 0.01)
         ),
     
     # Add main panel for plot
     mainPanel(
-        h3(textOutput("caption")),
-        plotOutput("plot"),
-        verbatimTextOutput("summary")
+        h3(textOutput("caption")),        
+        tabsetPanel(
+            tabPanel("Plot", plotOutput("plot"), verbatimTextOutput("summaryCoef")),
+            tabPanel("Summary", verbatimTextOutput("summary")),
+            tabPanel("Table", dataTableOutput("table"))
+            )
         )
     ))

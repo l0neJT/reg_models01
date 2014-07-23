@@ -39,9 +39,10 @@ shinyServer(function(input, output) {
     
     # Output scatter plot for mpg ~ predictor with linear model line
     output$plot <- renderPlot({
-        # Store formula, fitLM, and xVals to facilitate multiple calls
+        # Store user input
         formula <- as.formula(formulaTxt())
         fitLM <- fitLM()
+        level <- input$level
         xVals <- xVals()
         
         # Plot mpg ~ predictor
@@ -64,19 +65,55 @@ shinyServer(function(input, output) {
         # Add linear model regression line
         abline(fitLM, lwd = 2)
         
-        # Add confidence interval lines
-        confLM <- predict(fitLM, xVals, interval = "confidence")
-        lines(xVals[, 1], confLM[, "lwr"]) # lower confidence interval
-        lines(xVals[, 1], confLM[, "upr"]) # upper confidence interval
+        # Add confidence interval lines (dashed)
+        confLM <- predict(fitLM, xVals, interval = "confidence", level = level)
+        lines(xVals[, 1], confLM[, "lwr"], lty = 2) # lower confidence interval
+        lines(xVals[, 1], confLM[, "upr"], lty = 2) # upper confidence interval
         
-        # Add prediction interval lines
-        predLM <- predict(fitLM, xVals, interval = "prediction")
-        lines(xVals[, 1], predLM[, "lwr"]) # lower prediction interval
-        lines(xVals[, 1], predLM[, "upr"]) # upper prediction interval
+        # Add prediction interval lines (dotted)
+        predLM <- predict(fitLM, xVals, interval = "prediction", level = level)
+        lines(xVals[, 1], predLM[, "lwr"], lty = 3) # lower prediction interval
+        lines(xVals[, 1], predLM[, "upr"], lty = 3) # upper prediction interval
+    })
+    
+    # Output coefficients for mpg ~ predictor linear model
+    output$summaryCoef <- renderPrint({
+        summary(fitLM())$coefficients
     })
     
     # Output summary for mpg ~ predictor linear model
     output$summary <- renderPrint({
-        summary(fitLM())$coefficients
-    })  
+        summary(fitLM())
+    })
+    
+    # Output table for mpg, predictor, am (transmission), prediction, lower, upper
+    output$table <- renderDataTable({
+        # Store user input
+        fitLM <- fitLM()
+        level <- input$level
+        predictor <- input$predictor
+        
+        # Create table with mpg and predictor then re-label
+        table <- dat[c("mpg", predictor)]
+        names(table) <- c("MPG", switch(predictor,
+                                        "cyl" = "Cylinders",
+                                        "disp" = "Displacement (cu.in.)",
+                                        "wt" = "Weight (lb/1000)")
+                          )
+        # Add transmission column
+        table$Transmission <- factor(dat$am, labels = c("Auto", "Manual"))
+        
+        ## Stops working below this line
+        
+        # Create prediction
+#         predictTable <- predict(fitLM, table[, 2], interval = "prediction", level = level)
+        
+        # Add prediction, lower, upper columns
+#         table$Prediction <- predictTable[, "fit"]
+#         table$Lower <- predictTable[, "lwr"]
+#         table$Upper <- predictTable[, "upr"]
+        
+        # Return table
+        table
+    })
 })
