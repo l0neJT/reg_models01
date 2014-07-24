@@ -10,7 +10,7 @@ mtcarsPlotEx01 <- function() {
     # Create factor vector from 'am' for labeling
     amFactor <- factor(am, labels = c("Auto", "Manual"))
     
-    # Bar plot comparing mpg for automatic versus manual transmissions
+    # Box plot comparing mpg for automatic versus manual transmissions
     plot(amFactor, mpg, xlab = "Transmission", ylab = "MPG")
     title("MPG Comparison by Transmission Type")
 }
