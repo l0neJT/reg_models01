@@ -32,6 +32,16 @@ shinyServer(function(input, output) {
         xVals
     })
     
+    # Create label for predictor
+    predictorLabel <- reactive({
+        switch(input$predictor,
+               "cyl" = "Cylinders",
+               "disp" = "Displacement (cu.in.)",
+               "hp" = "Gross Horsepower",
+               "qsec" = "1/4 Mile Time",
+               "wt" = "Weight (lb/1000)")
+    })
+    
     # Output selected formula as text
     output$caption <- renderText({
         formulaTxt()
@@ -45,9 +55,14 @@ shinyServer(function(input, output) {
         level <- input$level
         xVals <- xVals()
         
+        # Create labels
+        xlab <- predictorLabel()
+        ylab <- "MPG"
+        main <- paste("MTCARS Regression", ylab, "~", xlab)
+        
         # Plot mpg ~ predictor
         # Color codes by transmission if input checkbox marked
-        plot(formula, dat, type = "n")
+        plot(formula, dat, xlab = xlab, ylab = ylab, main = main, type = "n")
         if(!input$color) {
             points(formula, dat)
         } else {
@@ -74,6 +89,8 @@ shinyServer(function(input, output) {
         predLM <- predict(fitLM, xVals, interval = "prediction", level = level)
         lines(xVals[, 1], predLM[, "lwr"], lty = 3) # lower prediction interval
         lines(xVals[, 1], predLM[, "upr"], lty = 3) # upper prediction interval
+        
+        # Add
     })
     
     # Output coefficients for mpg ~ predictor linear model
@@ -92,26 +109,24 @@ shinyServer(function(input, output) {
         fitLM <- fitLM()
         level <- input$level
         predictor <- input$predictor
+        predictorLabel <- predictorLabel()
         
-        # Create table with mpg and predictor then re-label
-        table <- dat[c("mpg", predictor)]
-        names(table) <- c("MPG", switch(predictor,
-                                        "cyl" = "Cylinders",
-                                        "disp" = "Displacement (cu.in.)",
-                                        "wt" = "Weight (lb/1000)")
-                          )
-        # Add transmission column
-        table$Transmission <- factor(dat$am, labels = c("Auto", "Manual"))
+        # Create table with mpg, transmission, and predictor
+        table <- cbind(rownames(dat), dat[c("am", predictor, "mpg")])
         
-        ## Stops working below this line
+        # Convert transmission to factor
+        table <- transform(table, am = factor(am, labels = c("Automatic", "Manual")))
+        
+        # Re-label table
+        names(table) <- c("Make", "Transmission", predictorLabel, "MPG")
         
         # Create prediction
-#         predictTable <- predict(fitLM, table[, 2], interval = "prediction", level = level)
+        predictTable <- predict(fitLM, interval = "prediction", level = level)
         
         # Add prediction, lower, upper columns
-#         table$Prediction <- predictTable[, "fit"]
-#         table$Lower <- predictTable[, "lwr"]
-#         table$Upper <- predictTable[, "upr"]
+        table$Prediction <- round(predictTable[, "fit"], digits = 1)
+        table$Lower <- round(predictTable[, "lwr"], digits = 1)
+        table$Upper <- round(predictTable[, "upr"], digits = 1)
         
         # Return table
         table

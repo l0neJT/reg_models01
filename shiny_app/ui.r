@@ -16,7 +16,9 @@ shinyUI(pageWithSidebar(
     sidebarPanel(
         selectInput("predictor", "Predictor:",
                     list("Cylinders" = "cyl",
-                         "Displacement (cu.in.)" = "disp", 
+                         "Displacement (cu.in.)" = "disp",
+                         "Gross Horsepower" = "hp",
+                         "1/4 Mile Time" = "qsec",
                          "Weight (lb/1000)" = "wt")
                     ),
         checkboxInput("color", "Color Code by Transmission"),
