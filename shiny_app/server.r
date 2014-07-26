@@ -12,7 +12,7 @@ dat <- mtcars
 
 # Define server input/output handlers
 shinyServer(function(input, output) {
-    
+
     ## Helper Functions
     
     # Create formula text for use in caption and plot
@@ -21,17 +21,20 @@ shinyServer(function(input, output) {
     })
     
     # Calculate linear model for mpg ~ predictor
-    fitLM <- reactive({
+    fit <- reactive({
         lm(as.formula(formulaTxt()), dat)
     })
     
-    # Create x values for confidence and prediction interval lines
-    xVals <- reactive({
-        x <- dat[input$predictor]
-        step = 10^(ceiling(log10(min(x))) - 2) # standardize line appearance
-        xVals <- data.frame(seq(min(x), max(x), by = step))
-        names(xVals) <- input$predictor
-        xVals
+    # Create data.frame fitting linear model for mpg ~ predictor
+    fitDat <- reactive({
+        fit <- fit()
+        data.frame(car = rownames(dat),
+                   trans = dat$am,
+                   trans.type = factor(dat$am, labels = c("Automatic", "Manual")),
+                   mpg = fit$model[, 1],
+                   pre = fit$model[, 2],
+                   res = resid(fit),
+                   row.names = NULL)
     })
     
     # Create label for predictor
@@ -44,6 +47,15 @@ shinyServer(function(input, output) {
                "wt" = "Weight (lb/1000)")
     })
     
+    # Create x values for confidence and prediction interval lines
+    xVals <- reactive({
+        x <- dat[input$predictor]
+        step = 10^(ceiling(log10(min(x))) - 2) # standardize line appearance
+        xVals <- data.frame(seq(min(x), max(x), by = step))
+        names(xVals) <- input$predictor
+        xVals
+    })
+    
     ## Output Functions
     
     # Output selected formula as text
@@ -54,8 +66,8 @@ shinyServer(function(input, output) {
     # Output scatter plot for mpg ~ predictor with linear model line
     output$plotDat <- renderPlot({
         # Store user input
-        formula <- as.formula(formulaTxt())
-        fitLM <- fitLM()
+        fit <- fit()
+        fitDat <- fitDat()
         level <- input$level
         xVals <- xVals()
         
@@ -66,15 +78,15 @@ shinyServer(function(input, output) {
         
         # Plot mpg ~ predictor
         # Color codes by transmission if input checkbox marked
-        plot(formula, dat, xlab = xlab, ylab = ylab, main = main, type = "n")
+        plot(mpg ~ pre, fitDat, xlab = xlab, ylab = ylab, main = main, type = "n")
         if(!input$color) {
-            points(formula, dat)
+            points(mpg ~ pre, fitDat)
         } else {
             # Automatic = Blue
-            points(formula, subset(dat, am == 0), col = "blue")
+            points(mpg ~ pre, subset(fitDat, trans == 0), col = "blue")
             
             # Manual = Red
-            points(formula, subset(dat, am == 1), col = "red")
+            points(mpg ~ pre, subset(fitDat, trans == 1), col = "red")
             
             # Add legend
             legend("topright", pch = 1, col = c("blue", "red"),
@@ -82,29 +94,24 @@ shinyServer(function(input, output) {
         }
         
         # Add linear model regression line
-        abline(fitLM, lwd = 2)
+        abline(fit, lwd = 2)
         
         # Add confidence interval lines (dashed)
-        confLM <- predict(fitLM, xVals, interval = "confidence", level = level)
-        lines(xVals[, 1], confLM[, "lwr"], lty = 2) # lower confidence interval
-        lines(xVals[, 1], confLM[, "upr"], lty = 2) # upper confidence interval
+        confidence <- predict(fit, xVals, interval = "confidence", level = level)
+        lines(xVals[, 1], confidence[, "lwr"], lty = 2) # lower confidence interval
+        lines(xVals[, 1], confidence[, "upr"], lty = 2) # upper confidence interval
         
         # Add prediction interval lines (dotted)
-        predLM <- predict(fitLM, xVals, interval = "prediction", level = level)
-        lines(xVals[, 1], predLM[, "lwr"], lty = 3) # lower prediction interval
-        lines(xVals[, 1], predLM[, "upr"], lty = 3) # upper prediction interval
+        prediction <- predict(fit, xVals, interval = "prediction", level = level)
+        lines(xVals[, 1], prediction[, "lwr"], lty = 3) # lower prediction interval
+        lines(xVals[, 1], prediction[, "upr"], lty = 3) # upper prediction interval
         
     })
     
     # Output scatter plot for residuals ~ predictor
     output$plotRes <- renderPlot({
         # Store user input
-        fitLM <- fitLM()
-        pre <- fitLM$model[input$predictor]
-        res <- resid(fitLM)
-        datRes <- data.frame(dat$am, pre, res)
-        names(datRes) <- c("am", "pre", "res")
-        
+        fitDat <- fitDat()
         
         # Create labels
         xlab <- predictorLabel()
@@ -113,15 +120,15 @@ shinyServer(function(input, output) {
         
         # Plot residuals ~ predictor
         # Color codes by transmission if input checkbox marked
-        plot(res ~ pre, datRes, xlab = xlab, ylab = ylab, main = main, type = "n")
+        plot(res ~ pre, fitDat, xlab = xlab, ylab = ylab, main = main, type = "n")
         if(!input$color) {
-            points(res ~ pre, datRes)
+            points(res ~ pre, fitDat)
         } else {
             # Automatic = Blue
-            points(res ~ pre, subset(datRes, am == 0), col = "blue")
+            points(res ~ pre, subset(fitDat, trans == 0), col = "blue")
             
             # Manual = Red
-            points(res ~ pre, subset(datRes, am == 1), col = "red")
+            points(res ~ pre, subset(fitDat, trans == 1), col = "red")
             
             # Add legend
             legend("topright", pch = 1, col = c("blue", "red"),
@@ -134,35 +141,37 @@ shinyServer(function(input, output) {
     
     # Output summary for mpg ~ predictor linear model
     output$summary <- renderPrint({
-        summary(fitLM())
+        summary(fit())
     })
     
     # Output table for mpg, predictor, am (transmission), prediction, lower, upper
     output$table <- renderDataTable({
         # Store user input
-        fitLM <- fitLM()
-        level <- input$level
-        predictor <- input$predictor
+        fit <- fit()
+        fitDat <- fitDat()
+        level = input$level
         predictorLabel <- predictorLabel()
         
-        # Create table with mpg, transmission, and predictor
-        table <- cbind(rownames(dat), dat[c("am", predictor, "mpg")])
-        
-        # Convert transmission to factor
-        table <- transform(table, am = factor(am, labels = c("Automatic", "Manual")))
-        
         # Re-label table
-        names(table) <- c("Make", "Transmission", predictorLabel, "MPG")
+        names(fitDat) <- c("Make", "Transmission.Num", "Transmission.Type", 
+                           "MPG", predictorLabel, "Residual")
+        
+        # Create confidence
+        confidence <- predict(fit, interval = "confidence", level = level)
+        
+        # Add confidence, lower, upper columns
+        fitDat$Fit <- confidence[, "fit"]
+        fitDat$Confidence.Lower <- confidence[, "lwr"]
+        fitDat$Confidence.Upper <- confidence[, "upr"]
         
         # Create prediction
-        predictTable <- predict(fitLM, interval = "prediction", level = level)
+        prediction <- predict(fit, interval = "prediction", level = level)
         
         # Add prediction, lower, upper columns
-        table$Prediction <- round(predictTable[, "fit"], digits = 1)
-        table$Lower <- round(predictTable[, "lwr"], digits = 1)
-        table$Upper <- round(predictTable[, "upr"], digits = 1)
+        fitDat$Prediction.Lower <- prediction[, "lwr"]
+        fitDat$Prediction.Upper <- prediction[, "upr"]
         
         # Return table
-        table
+        fitDat
     })
 })
