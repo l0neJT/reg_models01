@@ -13,6 +13,8 @@ dat <- mtcars
 # Define server input/output handlers
 shinyServer(function(input, output) {
     
+    ## Helper Functions
+    
     # Create formula text for use in caption and plot
     formulaTxt <- reactive({
         paste("mpg ~", input$predictor)
@@ -42,13 +44,15 @@ shinyServer(function(input, output) {
                "wt" = "Weight (lb/1000)")
     })
     
+    ## Output Functions
+    
     # Output selected formula as text
     output$caption <- renderText({
         formulaTxt()
     })
     
     # Output scatter plot for mpg ~ predictor with linear model line
-    output$plot <- renderPlot({
+    output$plotDat <- renderPlot({
         # Store user input
         formula <- as.formula(formulaTxt())
         fitLM <- fitLM()
@@ -74,7 +78,7 @@ shinyServer(function(input, output) {
             
             # Add legend
             legend("topright", pch = 1, col = c("blue", "red"),
-                   legend = c("Auto", "Manual"))
+                   legend = c("Automatic", "Manual"))
         }
         
         # Add linear model regression line
@@ -90,12 +94,42 @@ shinyServer(function(input, output) {
         lines(xVals[, 1], predLM[, "lwr"], lty = 3) # lower prediction interval
         lines(xVals[, 1], predLM[, "upr"], lty = 3) # upper prediction interval
         
-        # Add
     })
     
-    # Output coefficients for mpg ~ predictor linear model
-    output$summaryCoef <- renderPrint({
-        summary(fitLM())$coefficients
+    # Output scatter plot for residuals ~ predictor
+    output$plotRes <- renderPlot({
+        # Store user input
+        fitLM <- fitLM()
+        pre <- fitLM$model[input$predictor]
+        res <- resid(fitLM)
+        datRes <- data.frame(dat$am, pre, res)
+        names(datRes) <- c("am", "pre", "res")
+        
+        
+        # Create labels
+        xlab <- predictorLabel()
+        ylab <- "Residual (MPG)"
+        main <- paste("MTCARS Residuals for", xlab)
+        
+        # Plot residuals ~ predictor
+        # Color codes by transmission if input checkbox marked
+        plot(res ~ pre, datRes, xlab = xlab, ylab = ylab, main = main, type = "n")
+        if(!input$color) {
+            points(res ~ pre, datRes)
+        } else {
+            # Automatic = Blue
+            points(res ~ pre, subset(datRes, am == 0), col = "blue")
+            
+            # Manual = Red
+            points(res ~ pre, subset(datRes, am == 1), col = "red")
+            
+            # Add legend
+            legend("topright", pch = 1, col = c("blue", "red"),
+                   legend = c("Automatic", "Manual"))
+        }
+        
+        # Add horizontal line
+        abline(h = 0)
     })
     
     # Output summary for mpg ~ predictor linear model

@@ -30,7 +30,8 @@ shinyUI(pageWithSidebar(
     mainPanel(
         h3(textOutput("caption")),        
         tabsetPanel(
-            tabPanel("Plot", plotOutput("plot"), verbatimTextOutput("summaryCoef")),
+            tabPanel("Plot", plotOutput("plotDat")), 
+            tabPanel("Residuals", plotOutput("plotRes")),
             tabPanel("Summary", verbatimTextOutput("summary")),
             tabPanel("Table", dataTableOutput("table"))
             )
