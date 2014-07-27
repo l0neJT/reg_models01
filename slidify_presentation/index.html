@@ -48,7 +48,7 @@
   <article data-timings="">
     <ul>
 <li>Many struggle to understand the impact of discrete variables in statistical models</li>
-<li>Investigate automobile effiencey as a familiar and accesible example</li>
+<li>Investigate automobile efficiency as a familiar and accessible example</li>
 <li>Design a simple application targeting non-statisticians to:
 
 <ul>
@@ -67,9 +67,21 @@
     <h2>Dataset and Methodology</h2>
   </hgroup>
   <article data-timings="">
-    <h3>MTCARS Dataset</h3>
+    <h3><a href="http://stat.ethz.ch/R-manual/R-devel/library/datasets/html/mtcars.html">MTCARS Dataset</a></h3>
+
+<ul>
+<li>Part of the base R package</li>
+<li>Extracted from the 1974 <em>Motor Trend</em> US magazine</li>
+<li>Compares fuel consumption against 10 variable for 32 automobiles</li>
+</ul>
 
 <h3>Linear Regression Models</h3>
+
+<ul>
+<li>Regression by transmission type yields useful results (details on next slide)</li>
+<li>Attempt to improve by regressing other variables</li>
+<li>Compare single variable versus adding transmission type</li>
+</ul>
 
   </article>
   <!-- Presenter Notes -->
@@ -112,7 +124,18 @@
     <h2>Shiny App</h2>
   </hgroup>
   <article data-timings="">
-    
+    <ul>
+<li>Available on the <a href="http://lonejt.shinyapps.io/shiny_app/">Rstudio Shiny App Server</a></li>
+<li>Input controls for predictor, interval, and color coding by transmission</li>
+</ul>
+
+<p><img src = "./img/app_inputs.png" /></p>
+
+<ul>
+<li>Plots comparing single and multi-variable regression</li>
+<li>Tabs for summary statistics and table data</li>
+</ul>
+
   </article>
   <!-- Presenter Notes -->
 </slide>
@@ -122,7 +145,17 @@
     <h2>Interpreting Results</h2>
   </hgroup>
   <article data-timings="">
-    
+    <ul>
+<li>Many variables yield tighter fits than transmission type notably:
+
+<ul>
+<li>Displacement (cu. in.) with P-value of 9.38e-10</li>
+<li>Weight (lb/1000) with a P-value of 1.29e-10</li>
+</ul></li>
+<li>Adding transmission type did not improve better-fit variables</li>
+<li>Further modeling - perhaps adjusting for covariance - may yield improved predictions</li>
+</ul>
+
   </article>
   <!-- Presenter Notes -->
 </slide>

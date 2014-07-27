@@ -10,6 +10,7 @@ library(shiny)
 # Store 'mrcars' data to facilitate multiple calls
 dat <- mtcars
 
+
 # Define server input/output handlers
 shinyServer(function(input, output) {
 
