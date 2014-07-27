@@ -25,17 +25,28 @@ knit        : slidify::knit2slides
 
 ### Linear Regression Models
 
---- &twocol w1:60% w2:40%
+--- &twocol
 
 ## Example Regression Against Transmission Type
 
 *** =left
 
-![plot of chunk ex_plot](assets/fig/ex_plot.png) 
+![plot of chunk unnamed-chunk-1](assets/fig/unnamed-chunk-1.png) 
 
 *** =right
 
-Some Text
+* Linear regression for MPG ~ transmission *suggests* a benefit for manuals
+    * The P-value for the slope (two-sided) bests a 99.9% confidence interval
+    * The P-value for the intercept greatly exceeds 99.9% confidence
+* Yet, predictions from transmission alone spread +/- 10 MPG
+* Would you buy a car offering 6 to 27 MPG?
+
+
+```
+##   Transmission   Fit  Lower Upper
+## 1       Manual 24.39 14.003 34.78
+## 2    Automatic 17.15  6.876 27.42
+```
 
 ---
 

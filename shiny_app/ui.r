@@ -27,11 +27,20 @@ shinyUI(pageWithSidebar(
     
     # Add main panel for plot
     mainPanel(
-        h3(textOutput("caption")),        
+        h3("Comparison of Single Versus Multi-Factor Regresion"),
         tabsetPanel(
-            tabPanel("Plot", plotOutput("plotDat")), 
-            tabPanel("Residuals", plotOutput("plotRes")),
-            tabPanel("Summary", verbatimTextOutput("summary")),
+            tabPanel(textOutput("capSingle"),
+                     plotOutput("plotDatSingle"),
+                     plotOutput("plotResSingle")), 
+            tabPanel(textOutput("capMulti"),
+                     plotOutput("plotDatMulti"),
+                     plotOutput("plotResMulti")),
+            tabPanel("Summary",
+                     h4(textOutput("capSingleDup")),
+                     verbatimTextOutput("sumSingle"),
+                     br(),
+                     h4(textOutput("capMultiDup")),
+                     verbatimTextOutput("sumMulti")),
             tabPanel("Table", dataTableOutput("table"))
             )
         )

@@ -25,13 +25,13 @@ knit        : slidify::knit2slides
 
 ### Linear Regression Models
 
---- &twocol w1:60% w2:40%
+--- &twocol
 
 ## Example Regression Against Transmission Type
 
 *** =left
 
-```{r ex_plot, echo = FALSE}
+```{r echo = FALSE}
     # Load libraries
     library(datasets)
     
@@ -49,7 +49,9 @@ knit        : slidify::knit2slides
     # Scatter plot mpg ~ am
     # Adds line for 'fit'
     plot(mpg ~ am, dat, xlab = "", ylab = "MPG", xaxt = "n")
-    abline(fit, col = "red", lwd = 2)
+    abline(fit, lwd = 2)
+
+    # Add labels for summary data, axes, and title
     text(x = 0.65, y = seq(from = 32, to = 26, by = -2), adj = c(1, 1), labels = fitText)
     axis(1, c(0, 1), c("Automatic", "Manual"))
     title("MTCARS Regression MPG ~ Transmission Type")
@@ -57,7 +59,35 @@ knit        : slidify::knit2slides
 
 *** =right
 
-Some Text
+* Linear regression for MPG ~ transmission *suggests* a benefit for manuals
+    * The P-value for the slope (two-sided) bests a 99.9% confidence interval
+    * The P-value for the intercept greatly exceeds 99.9% confidence
+* Yet, predictions from transmission alone spread +/- 10 MPG
+* Would you buy a car offering 6 to 27 MPG?
+
+```{r echo = FALSE}
+    # Load libraries
+    library(datasets)
+    
+    # Read 'mtcars' dataset
+    dat <- mtcars
+
+    # Fit linear model for mpg ~ am
+    fit <- lm(mpg ~ am, dat)
+
+    # Create data.frame for unique transmission numbers
+    trans <- data.frame(am = unique(dat$am))
+
+    # Bind columns for prediction interval at 95%
+    trans <- cbind(trans, predict(fit, trans, interval = "prediction"))
+    
+    # Transform transmission number to type and re-label
+    trans <- transform(trans, am = factor(trans$am, labels = c("Automatic", "Manual")))
+    names(trans) <- c("Transmission", "Fit", "Lower", "Upper")
+
+    # Return data.frame
+    trans
+```
 
 ---
 
