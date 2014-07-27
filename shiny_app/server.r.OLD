@@ -23,17 +23,21 @@ shinyServer(function(input, output) {
     
     # Create formula text for multi-factor regression including transmission
     formulaM <- reactive({
-        paste("mpg ~", input$predictor, "+ am")
+        paste("mpg ~ (", input$predictor, "+ am)")
     })
     
     # Calculate linear model for mpg ~ predictor
     fitS <- reactive({
-        lm(as.formula(formulaS()), dat)
+        mpg <- dat$mpg
+        predictor <- dat[[input$predictor]]
+        lm(mpg ~ predictor)
     })
     
-    # Calculate linear model for mpg ~ predictor + am
+    # Calculate linear model for mpg ~ (predictor + am)
     fitM <- reactive({
-        lm(as.formula(formulaM()), dat)
+        mpg <- dat$mpg
+        predictor <- dat[[input$predictor]] + dat$am
+        lm(mpg ~ predictor)
     })
     
     # Create data.frame fitting separate linear models
@@ -45,10 +49,9 @@ shinyServer(function(input, output) {
                    trans = dat$am,
                    trans.type = factor(dat$am, labels = c("Automatic", "Manual")),
                    mpg = fitS$model[, 1],
-                   pre = fitS$model[, 2],
-                   fit.single = ,
+                   pre.single = fitS$model[, 2],
+                   pre.multi = fitM$model[, 2],
                    res.single = resid(fitS),
-                   fit.multi = ,
                    res.multi = resid(fitM),
                    row.names = NULL)
     })
@@ -106,15 +109,15 @@ shinyServer(function(input, output) {
         
         # Plot mpg ~ predictor
         # Color codes by transmission if input checkbox marked
-        plot(mpg ~ pre, fitDat, xlab = xlab, ylab = ylab, main = main, type = "n")
+        plot(mpg ~ pre.single, fitDat, xlab = xlab, ylab = ylab, main = main, type = "n")
         if(!input$color) {
-            points(mpg ~ pre, fitDat)
+            points(mpg ~ pre.single, fitDat)
         } else {
             # Automatic = Blue
-            points(mpg ~ pre, subset(fitDat, trans == 0), col = "blue")
+            points(mpg ~ pre.single, subset(fitDat, trans == 0), col = "blue")
             
             # Manual = Red
-            points(mpg ~ pre, subset(fitDat, trans == 1), col = "red")
+            points(mpg ~ pre.single, subset(fitDat, trans == 1), col = "red")
             
             # Add legend
             legend("topright", pch = 1, col = c("blue", "red"),
@@ -135,9 +138,48 @@ shinyServer(function(input, output) {
         lines(xVals[, 1], prediction[, "upr"], lty = 3) # upper prediction interval
     })
     
-    # Output coefficients for mpg ~ predictor
-    output$coefSingle <- renderText ({
-        coef(fitS())
+    # Output scatter plot for mpg ~ (predictor + am) with linear model line
+    output$plotDatMulti <- renderPlot({
+        # Store user input
+        fitM <- fitM()
+        fitDat <- fitDat()
+        level <- input$level
+        xVals <- xVals()
+        
+        # Create labels
+        xlab <- paste0("(", predictorLabel(), " + Transmission)")
+        ylab <- "MPG"
+        main <- paste("MTCARS Regression MPG ~", xlab)
+        
+        # Plot mpg ~ predictor
+        # Color codes by transmission if input checkbox marked
+        plot(mpg ~ pre.multi, fitDat, xlab = xlab, ylab = ylab, main = main, type = "n")
+        if(!input$color) {
+            points(mpg ~ pre.multi, fitDat)
+        } else {
+            # Automatic = Blue
+            points(mpg ~ pre.multi, subset(fitDat, trans == 0), col = "blue")
+            
+            # Manual = Red
+            points(mpg ~ pre.multi, subset(fitDat, trans == 1), col = "red")
+            
+            # Add legend
+            legend("topright", pch = 1, col = c("blue", "red"),
+                   legend = c("Automatic", "Manual"))
+        }
+        
+        # Add linear model regression line
+        abline(fitM, lwd = 2)
+        
+        # Add confidence interval lines (dashed)
+        confidence <- predict(fitM, xVals, interval = "confidence", level = level)
+        lines(xVals[, 1], confidence[, "lwr"], lty = 2) # lower confidence interval
+        lines(xVals[, 1], confidence[, "upr"], lty = 2) # upper confidence interval
+        
+        # Add prediction interval lines (dotted)
+        prediction <- predict(fitM, xVals, interval = "prediction", level = level)
+        lines(xVals[, 1], prediction[, "lwr"], lty = 3) # lower prediction interval
+        lines(xVals[, 1], prediction[, "upr"], lty = 3) # upper prediction interval
     })
     
     # Output scatter plot for residuals ~ predictor
@@ -152,15 +194,15 @@ shinyServer(function(input, output) {
         
         # Plot residuals ~ predictor
         # Color codes by transmission if input checkbox marked
-        plot(res.single ~ pre, fitDat, xlab = xlab, ylab = ylab, main = main, type = "n")
+        plot(res.single ~ pre.single, fitDat, xlab = xlab, ylab = ylab, main = main, type = "n")
         if(!input$color) {
-            points(res.single ~ pre, fitDat)
+            points(res.single ~ pre.single, fitDat)
         } else {
             # Automatic = Blue
-            points(res.single ~ pre, subset(fitDat, trans == 0), col = "blue")
+            points(res.single ~ pre.single, subset(fitDat, trans == 0), col = "blue")
             
             # Manual = Red
-            points(res.single ~ pre, subset(fitDat, trans == 1), col = "red")
+            points(res.single ~ pre.single, subset(fitDat, trans == 1), col = "red")
             
             # Add legend
             legend("topright", pch = 1, col = c("blue", "red"),
@@ -168,38 +210,30 @@ shinyServer(function(input, output) {
         }
         
         # Add horizontal line
-        abline(h = 0, lwd = 2)
-        
-        # Add dotted max/min lines
-        maxRes <- max(fitDat$res.single)
-        miners <- min(fitDat$res.single)
-        abline(h = maxRes, lty = 3)
-        abline(h = miners, lty = 3)
-        
-        # Add max/min labels
+        abline(h = 0)
     })
     
-    # Output scatter plot for residuals ~ predictor + am
+    # Output scatter plot for residuals ~ (predictor + am)
     output$plotResMulti <- renderPlot({
         # Store user input
         fitDat <- fitDat()
         
         # Create labels
-        xlab <- predictorLabel()
+        xlab <- paste0("(", predictorLabel(), " + Transmission)")
         ylab <- "Residual (MPG)"
-        main <- paste("MTCARS Residuals for", xlab, "+ Transmission")
+        main <- paste("MTCARS Residuals for", xlab)
         
-        # Plot residuals ~ predictor
+        # Plot residuals ~ (predictor + am)
         # Color codes by transmission if input checkbox marked
-        plot(res.multi ~ pre, fitDat, xlab = xlab, ylab = ylab, main = main, type = "n")
+        plot(res.multi ~ pre.multi, fitDat, xlab = xlab, ylab = ylab, main = main, type = "n")
         if(!input$color) {
-            points(res.multi ~ pre, fitDat)
+            points(res.multi ~ pre.multi, fitDat)
         } else {
             # Automatic = Blue
-            points(res.multi ~ pre, subset(fitDat, trans == 0), col = "blue")
+            points(res.multi ~ pre.multi, subset(fitDat, trans == 0), col = "blue")
             
             # Manual = Red
-            points(res.multi ~ pre, subset(fitDat, trans == 1), col = "red")
+            points(res.multi ~ pre.multi, subset(fitDat, trans == 1), col = "red")
             
             # Add legend
             legend("topright", pch = 1, col = c("blue", "red"),
@@ -207,15 +241,7 @@ shinyServer(function(input, output) {
         }
         
         # Add horizontal line
-        abline(h = 0, lwd = 2)
-        
-        # Add dotted max/min lines
-        maxRes <- max(fitDat$res.multi)
-        miners <- min(fitDat$res.multi)
-        abline(h = maxRes, lty = 3)
-        abline(h = miners, lty = 3)
-        
-        # Add max/min labels
+        abline(h = 0)
     })
     
     # Output summary for mpg ~ predictor linear model
@@ -231,14 +257,35 @@ shinyServer(function(input, output) {
     # Output table data
     output$table <- renderDataTable({
         # Store user input
+        fitS <- fitS()
+        fitM <- fitM()
         fitDat <- fitDat()
+        level = input$level
+        predictorLabel <- predictorLabel()
         
         # Re-label table
         names(fitDat) <- c("Make", "Transmission.Num", "Transmission.Type", 
-                           "MPG", predictorLabel(),
-                           "Fit.Single", "Residual.Single",
-                           "Fit.Multi", "Residual.Multi")
+                           "MPG", predictorLabel,
+                           paste0("(", predictorLabel, " + Transmission)"),
+                           "Residual.Single", "Residual.Multi")
+        
+        # Create prediction for mpg ~ predictor
+        prediction <- predict(fitS, interval = "prediction", level = level)
+        
+        # Add prediction, lower, upper columns
+        fitDat$Fit.Single <- prediction[, "fit"]
+        fitDat$Lower.Single <- prediction[, "lwr"]
+        fitDat$Upper.Single <- prediction[, "upr"]
+        
+        # Create prediction for mpg ~ predictor + am
+        prediction <- predict(fitM, interval = "prediction", level = level)
+        
+        # Add prediction, lower, upper columns
+        fitDat$Fit.Multi <- prediction[, "fit"]
+        fitDat$Lower.Multi <- prediction[, "lwr"]
+        fitDat$Upper.Multi <- prediction[, "upr"]
         
         # Return table
         fitDat
     })
+})
