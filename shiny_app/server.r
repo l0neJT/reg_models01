@@ -40,7 +40,6 @@ shinyServer(function(input, output) {
     # Create label for predictor
     predictorLabel <- reactive({
         switch(input$predictor,
-               "cyl" = "Cylinders",
                "disp" = "Displacement (cu.in.)",
                "hp" = "Gross Horsepower",
                "qsec" = "1/4 Mile Time",

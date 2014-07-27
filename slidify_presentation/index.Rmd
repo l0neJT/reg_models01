@@ -1,0 +1,68 @@
+---
+title       : Modeling Transmission Impact on Automobile Efficiency
+subtitle    : Using Shiny App and MTCARS Dataset
+author      : Logan J Travis
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+## Executive Summary
+* Many struggle to understand the impact of discrete variables in statistical models
+* Investigate automobile effiencey as a familiar and accesible example
+* Design a simple application targeting non-statisticians to:
+    * Interactively model fuel efficiency (MPG) using a variety of continuous variables<br>(e.g. weight, engine displacement)
+    * Compare model fit after adding a discrete variable (transmission type)
+* Host the application online for all to experience!
+
+---
+
+## Dataset and Methodology
+### MTCARS Dataset
+
+### Linear Regression Models
+
+--- &twocol w1:60% w2:40%
+
+## Example Regression Against Transmission Type
+
+*** =left
+
+```{r ex_plot, echo = FALSE}
+    # Load libraries
+    library(datasets)
+    
+    # Read 'mtcars' dataset
+    dat <- mtcars
+    
+    # Fit linear model for mpg ~ am
+    fit <- lm(mpg ~ am, dat)
+    fitCoef <- summary(fit)$coefficients
+    fitText <- c(paste("Intercept:", round(fitCoef[1, 1], digits = 4)),
+                 paste("Intercept P-Value:", signif(fitCoef[1, 4], digits = 4)),
+                 paste("Slope:", round(fitCoef[2, 1], digits = 4)),
+                 paste("Slope P-Value:", signif(fitCoef[2, 4], digits = 4)))
+    
+    # Scatter plot mpg ~ am
+    # Adds line for 'fit'
+    plot(mpg ~ am, dat, xlab = "", ylab = "MPG", xaxt = "n")
+    abline(fit, col = "red", lwd = 2)
+    text(x = 0.65, y = seq(from = 32, to = 26, by = -2), adj = c(1, 1), labels = fitText)
+    axis(1, c(0, 1), c("Automatic", "Manual"))
+    title("MTCARS Regression MPG ~ Transmission Type")
+```
+
+*** =right
+
+Some Text
+
+---
+
+## Shiny App
+
+---
+
+## Interpreting Results
