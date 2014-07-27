@@ -28,8 +28,9 @@ Your report must be:
 * mtcarsPlotEx02.r creates a scatter plot with linear model line of MPG by transmission type (automatic = 0 and manual = 1)
 * mtcarsPlotEx03.r creates a scatter plot with linear model line of MPG by weight (in 1000 lbs) grouped by transmission type
 
-### ./report/
-* LJT_Impact_of_Transmission_on_Automobile_Efficiency.mdr creates the final report using knitr
+#### ./shiny_app
+
+#### ./slidify_presentation
 
 ### Links
 [coursera_reg_models]: https://www.coursera.org/course/regmods
