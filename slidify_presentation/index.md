@@ -61,7 +61,7 @@ knit        : slidify::knit2slides
 * Available on the [Rstudio Shiny App Server](http://lonejt.shinyapps.io/shiny_app/)
 * Input controls for predictor, interval, and color coding by transmission
 
-    <img src = "https://raw.githubusercontent.com/l0neJT/reg_models01/master/slidify_presentation/assets/img/app_inputs.png" />
+    <img src = "./assets/img/app_inputs.png" />
 
 * Plots comparing single and multi-variable regression
 * Tabs for summary statistics and table data
@@ -74,4 +74,5 @@ knit        : slidify::knit2slides
     * Displacement (cu. in.) with P-value of 9.38e-10
     * Weight (lb/1000) with a P-value of 1.29e-10
 * Adding transmission type did not improve better-fit variables
-* Further modeling - perhaps adjusting for covariance - may yield improved predictions
+* Adding transmission type *did* improve predictor P-values for poorer-fit<br>variables such as Gross Horsepower and 1/4 Mile Time
+* However, model quality (determined by adjusted R squared) always decreased

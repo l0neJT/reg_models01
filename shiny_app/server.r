@@ -46,9 +46,9 @@ shinyServer(function(input, output) {
                    trans.type = factor(dat$am, labels = c("Automatic", "Manual")),
                    mpg = fitS$model[, 1],
                    pre = fitS$model[, 2],
-                   fit.single = ,
+                   fit.single = fitted(fitS),
                    res.single = resid(fitS),
-                   fit.multi = ,
+                   fit.multi = fitted(fitM),
                    res.multi = resid(fitM),
                    row.names = NULL)
     })
@@ -67,7 +67,7 @@ shinyServer(function(input, output) {
         x <- dat[input$predictor]
         step = 10^(ceiling(log10(min(x))) - 2) # standardize line appearance
         xVals <- data.frame(seq(min(x), max(x), by = step))
-        names(xVals) <- "predictor"
+        names(xVals) <- input$predictor
         xVals
     })
     
@@ -105,21 +105,7 @@ shinyServer(function(input, output) {
         main <- paste("MTCARS Regression MPG ~", xlab)
         
         # Plot mpg ~ predictor
-        # Color codes by transmission if input checkbox marked
         plot(mpg ~ pre, fitDat, xlab = xlab, ylab = ylab, main = main, type = "n")
-        if(!input$color) {
-            points(mpg ~ pre, fitDat)
-        } else {
-            # Automatic = Blue
-            points(mpg ~ pre, subset(fitDat, trans == 0), col = "blue")
-            
-            # Manual = Red
-            points(mpg ~ pre, subset(fitDat, trans == 1), col = "red")
-            
-            # Add legend
-            legend("topright", pch = 1, col = c("blue", "red"),
-                   legend = c("Automatic", "Manual"))
-        }
         
         # Add linear model regression line
         abline(fitS, lwd = 2)
@@ -133,11 +119,26 @@ shinyServer(function(input, output) {
         prediction <- predict(fitS, xVals, interval = "prediction", level = level)
         lines(xVals[, 1], prediction[, "lwr"], lty = 3) # lower prediction interval
         lines(xVals[, 1], prediction[, "upr"], lty = 3) # upper prediction interval
+        
+        # Color code points by transmission if input checkbox marked
+        if(!input$color) {
+            points(mpg ~ pre, fitDat)
+        } else {
+            # Automatic = Blue
+            points(mpg ~ pre, subset(fitDat, trans == 0), col = "blue")
+            
+            # Manual = Red
+            points(mpg ~ pre, subset(fitDat, trans == 1), col = "red")
+            
+            # Add legend
+            legend("topright", pch = 1, col = c("blue", "red"),
+                   legend = c("Automatic", "Manual"))
+        }
     })
     
     # Output coefficients for mpg ~ predictor
-    output$coefSingle <- renderText ({
-        coef(fitS())
+    output$coefSingle <- renderTable ({
+        t(coef(fitS()))
     })
     
     # Output scatter plot for residuals ~ predictor
@@ -151,8 +152,18 @@ shinyServer(function(input, output) {
         main <- paste("MTCARS Residuals for", xlab)
         
         # Plot residuals ~ predictor
-        # Color codes by transmission if input checkbox marked
         plot(res.single ~ pre, fitDat, xlab = xlab, ylab = ylab, main = main, type = "n")
+        
+        # Add horizontal line
+        abline(h = 0, lwd = 2)
+        
+        # Add dotted max/min lines
+        maxRes <- max(fitDat$res.single)
+        miners <- min(fitDat$res.single)
+        abline(h = maxRes, lty = 3)
+        abline(h = miners, lty = 3)
+        
+        # Color code points by transmission if input checkbox marked
         if(!input$color) {
             points(res.single ~ pre, fitDat)
         } else {
@@ -166,17 +177,6 @@ shinyServer(function(input, output) {
             legend("topright", pch = 1, col = c("blue", "red"),
                    legend = c("Automatic", "Manual"))
         }
-        
-        # Add horizontal line
-        abline(h = 0, lwd = 2)
-        
-        # Add dotted max/min lines
-        maxRes <- max(fitDat$res.single)
-        miners <- min(fitDat$res.single)
-        abline(h = maxRes, lty = 3)
-        abline(h = miners, lty = 3)
-        
-        # Add max/min labels
     })
     
     # Output scatter plot for residuals ~ predictor + am
@@ -190,8 +190,18 @@ shinyServer(function(input, output) {
         main <- paste("MTCARS Residuals for", xlab, "+ Transmission")
         
         # Plot residuals ~ predictor
-        # Color codes by transmission if input checkbox marked
         plot(res.multi ~ pre, fitDat, xlab = xlab, ylab = ylab, main = main, type = "n")
+        
+        # Add horizontal line
+        abline(h = 0, lwd = 2)
+        
+        # Add dotted max/min lines
+        maxRes <- max(fitDat$res.multi)
+        miners <- min(fitDat$res.multi)
+        abline(h = maxRes, lty = 3)
+        abline(h = miners, lty = 3)
+        
+        # Color code points by transmission if input checkbox marked
         if(!input$color) {
             points(res.multi ~ pre, fitDat)
         } else {
@@ -205,17 +215,6 @@ shinyServer(function(input, output) {
             legend("topright", pch = 1, col = c("blue", "red"),
                    legend = c("Automatic", "Manual"))
         }
-        
-        # Add horizontal line
-        abline(h = 0, lwd = 2)
-        
-        # Add dotted max/min lines
-        maxRes <- max(fitDat$res.multi)
-        miners <- min(fitDat$res.multi)
-        abline(h = maxRes, lty = 3)
-        abline(h = miners, lty = 3)
-        
-        # Add max/min labels
     })
     
     # Output summary for mpg ~ predictor linear model
@@ -242,3 +241,4 @@ shinyServer(function(input, output) {
         # Return table
         fitDat
     })
+})

@@ -31,7 +31,7 @@ shinyUI(pageWithSidebar(
         tabsetPanel(
             tabPanel(textOutput("capSingle"),
                      plotOutput("plotDatSingle"),
-                     verbatimTextOutput("coefSingle")), 
+                     tableOutput("coefSingle")), 
             tabPanel("Residual Comparison",
                      plotOutput("plotResSingle"),
                      plotOutput("plotResMulti")),
@@ -44,14 +44,4 @@ shinyUI(pageWithSidebar(
             tabPanel("Table", dataTableOutput("table"))
             )
         )
-    )))
-                    ),
-        checkboxInput("color", "Color Code by Transmission"),
-        sliderInput("level", "Confidence and Prediction interval:",
-                    min = 0.50, max = 0.99, value = 0.95, step = 0.01)
-        ),
-    
-    # Add main panel for plot
-    mainPanel(
-        h3("Comparison of Single Versus Multi-Factor Regresion"),
-        tabsetPanel(
+    ))
