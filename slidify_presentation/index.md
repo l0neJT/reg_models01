@@ -2,7 +2,6 @@
 title       : Exploring Transmission Impact on Automobile Efficiency
 subtitle    : Using Shiny App and MTCARS Dataset
 author      : Logan J Travis
-assts       : ./assets
 framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
 highlighter : highlight.js  # {highlight.js, prettify, highlight}
 hitheme     : tomorrow      # 
@@ -38,7 +37,7 @@ knit        : slidify::knit2slides
 
 *** =left
 
-![plot of chunk unnamed-chunk-1](assets/fig/unnamed-chunk-1.png) 
+![plot of chunk plotMPG~Trans](assets/fig/plotMPG~Trans.png) 
 
 *** =right
 
