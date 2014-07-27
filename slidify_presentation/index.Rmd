@@ -103,7 +103,7 @@ knit        : slidify::knit2slides
 * Available on the [Rstudio Shiny App Server](http://lonejt.shinyapps.io/shiny_app/)
 * Input controls for predictor, interval, and color coding by transmission
 
-<img src = "./img/app_inputs.png" />
+    <img src = "https://raw.githubusercontent.com/l0neJT/reg_models01/master/slidify_presentation/assets/img/app_inputs.png" />
 
 * Plots comparing single and multi-variable regression
 * Tabs for summary statistics and table data
