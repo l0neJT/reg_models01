@@ -1,5 +1,5 @@
 ---
-title       : Modeling Transmission Impact on Automobile Efficiency
+title       : Exploring Transmission Impact on Automobile Efficiency
 subtitle    : Using Shiny App and MTCARS Dataset
 author      : Logan J Travis
 assts       : ./assets
